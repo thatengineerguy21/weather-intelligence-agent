@@ -4,44 +4,88 @@ sources:
     project: YOUR_GCP_PROJECT_ID
 
 tools:
-  execute_weather_query:
+  get_city_weather:
     kind: bigquery-sql
     source: weather-bq-source
     description: >
-      Executes a SQL query against the NOAA GHCN weather dataset.
-      element values: TMAX (max temp), TMIN (min temp), PRCP (precipitation),
-      SNOW (snowfall). All temp values divide by 10 for Celsius.
-      Filter q_flag = '' for quality readings.
+      Fetches historical weather data for a specific city or station name.
+      element: TMAX (max temp), TMIN (min temp), PRCP (precipitation/rainfall),
+      SNOW (snowfall), SNWD (snow depth).
+      Values are in tenths of original unit, divide by 10 for real value.
+      country_prefix: 2-letter country code e.g. US, IN, GM, CA, AU.
+      station_keyword: partial city name in uppercase e.g. NEW YORK, CHICAGO, MUMBAI.
+      month: integer 1-12.
+      year: 4 digit year e.g. 2023.
     statement: |
       SELECT
-        s.name,
+        s.name AS station_name,
         s.state,
-        s.country,
-        d.date,
-        d.element,
-        d.value / 10.0 AS value_celsius_or_mm
-      FROM `bigquery-public-data.ghcn_d.ghcnd_2024` d
+        AVG(d.value) / 10.0 AS avg_value,
+        MAX(d.value) / 10.0 AS max_value,
+        MIN(d.value) / 10.0 AS min_value,
+        COUNT(*) AS reading_count
+      FROM `bigquery-public-data.ghcn_d.ghcnd_2023` d
       JOIN `bigquery-public-data.ghcn_d.ghcnd_stations` s ON d.id = s.id
       WHERE d.element = @element
-        AND d.date BETWEEN @start_date AND @end_date
-        AND s.country = @country
-        AND d.q_flag = ''
-      ORDER BY d.value DESC
-      LIMIT 20
+        AND EXTRACT(MONTH FROM d.date) = @month
+        AND STARTS_WITH(d.id, @country_prefix)
+        AND UPPER(s.name) LIKE CONCAT('%', @station_keyword, '%')
+        AND d.qflag IS NULL
+      GROUP BY s.name, s.state
+      ORDER BY avg_value DESC
+      LIMIT 10
     parameters:
       - name: element
         type: string
-        description: Weather element (TMAX, TMIN, PRCP, SNOW, SNWD)
-      - name: start_date
+        description: "TMAX, TMIN, PRCP, SNOW or SNWD"
+      - name: month
+        type: integer
+        description: "Month as integer 1-12"
+      - name: country_prefix
         type: string
-        description: Start date in YYYY-MM-DD format
-      - name: end_date
+        description: "2-letter country prefix e.g. US, IN, GM, CA"
+      - name: station_keyword
         type: string
-        description: End date in YYYY-MM-DD format
-      - name: country
+        description: "Uppercase partial city name e.g. NEW YORK, CHICAGO"
+
+  get_country_weather:
+    kind: bigquery-sql
+    source: weather-bq-source
+    description: >
+      Fetches aggregated weather data for an entire country when no specific
+      city is mentioned. Returns top stations by value.
+      country_prefix: 2-letter country code e.g. US, IN, GM, CA, AU.
+      element: TMAX, TMIN, PRCP, SNOW, SNWD.
+      month: integer 1-12.
+    statement: |
+      SELECT
+        s.name AS station_name,
+        s.state,
+        AVG(d.value) / 10.0 AS avg_value,
+        MAX(d.value) / 10.0 AS max_value,
+        MIN(d.value) / 10.0 AS min_value,
+        COUNT(*) AS reading_count
+      FROM `bigquery-public-data.ghcn_d.ghcnd_2023` d
+      JOIN `bigquery-public-data.ghcn_d.ghcnd_stations` s ON d.id = s.id
+      WHERE d.element = @element
+        AND EXTRACT(MONTH FROM d.date) = @month
+        AND STARTS_WITH(d.id, @country_prefix)
+        AND d.qflag IS NULL
+      GROUP BY s.name, s.state
+      ORDER BY avg_value DESC
+      LIMIT 10
+    parameters:
+      - name: element
         type: string
-        description: Two-letter country code e.g. US, IN, UK
+        description: "TMAX, TMIN, PRCP, SNOW or SNWD"
+      - name: month
+        type: integer
+        description: "Month as integer 1-12"
+      - name: country_prefix
+        type: string
+        description: "2-letter country prefix e.g. US, IN, GM, CA"
 
 toolsets:
   weather_toolset:
-    - execute_weather_query
+    - get_city_weather
+    - get_country_weather
