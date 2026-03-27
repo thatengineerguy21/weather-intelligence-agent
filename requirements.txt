@@ -1,0 +1,6 @@
+google-adk
+toolbox-core
+fastapi
+uvicorn
+python-dotenv
+aiofiles

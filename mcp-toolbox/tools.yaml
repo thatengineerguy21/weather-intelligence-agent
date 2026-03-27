@@ -1,0 +1,24 @@
+sources:
+  weather-bq-source:
+    kind: bigquery
+    project: YOUR_PROJECT_ID
+
+tools:
+  execute_weather_query:
+    kind: bigquery-sql
+    source: weather-bq-source
+    description: >
+      Executes a BigQuery SQL query against the NOAA GHCN weather dataset.
+      The main table is `bigquery-public-data.ghcn_d.ghcnd_2024` (replace year as needed).
+      Schema: id (station), date (DATE), element (TMAX/TMIN/PRCP/SNOW/SNWD), 
+      value (integer, divide by 10 for Celsius), m_flag, q_flag, s_flag, obs_time.
+      For station names join with `bigquery-public-data.ghcn_d.ghcnd_stations`.
+      Stations schema: id, latitude, longitude, elevation, state, name, country.
+    parameters:
+      - name: query
+        type: string
+        description: A valid BigQuery SQL query string
+
+toolsets:
+  weather_toolset:
+    - execute_weather_query

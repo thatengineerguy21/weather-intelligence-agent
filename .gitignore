@@ -1,0 +1,46 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment Variables / Secrets
+.env
+*.env
+
+# Logs
+*.log
+agents_log/
+
+# Google Agent Development Kit (ADK) local state
+.adk/
+weather_agent_app/.adk/
+
+# MCP Toolbox Binary (Large 159MB file, should be downloaded per environment)
+mcp-toolbox/toolbox
+mcp-toolbox/toolbox_.gstmp
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
