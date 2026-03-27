@@ -1,23 +1,46 @@
 sources:
   weather-bq-source:
     kind: bigquery
-    project: YOUR_PROJECT_ID
+    project: YOUR_GCP_PROJECT_ID
 
 tools:
   execute_weather_query:
     kind: bigquery-sql
     source: weather-bq-source
     description: >
-      Executes a BigQuery SQL query against the NOAA GHCN weather dataset.
-      The main table is `bigquery-public-data.ghcn_d.ghcnd_2024` (replace year as needed).
-      Schema: id (station), date (DATE), element (TMAX/TMIN/PRCP/SNOW/SNWD), 
-      value (integer, divide by 10 for Celsius), m_flag, q_flag, s_flag, obs_time.
-      For station names join with `bigquery-public-data.ghcn_d.ghcnd_stations`.
-      Stations schema: id, latitude, longitude, elevation, state, name, country.
+      Executes a SQL query against the NOAA GHCN weather dataset.
+      element values: TMAX (max temp), TMIN (min temp), PRCP (precipitation),
+      SNOW (snowfall). All temp values divide by 10 for Celsius.
+      Filter q_flag = '' for quality readings.
+    statement: |
+      SELECT
+        s.name,
+        s.state,
+        s.country,
+        d.date,
+        d.element,
+        d.value / 10.0 AS value_celsius_or_mm
+      FROM `bigquery-public-data.ghcn_d.ghcnd_2024` d
+      JOIN `bigquery-public-data.ghcn_d.ghcnd_stations` s ON d.id = s.id
+      WHERE d.element = @element
+        AND d.date BETWEEN @start_date AND @end_date
+        AND s.country = @country
+        AND d.q_flag = ''
+      ORDER BY d.value DESC
+      LIMIT 20
     parameters:
-      - name: query
+      - name: element
         type: string
-        description: A valid BigQuery SQL query string
+        description: Weather element (TMAX, TMIN, PRCP, SNOW, SNWD)
+      - name: start_date
+        type: string
+        description: Start date in YYYY-MM-DD format
+      - name: end_date
+        type: string
+        description: End date in YYYY-MM-DD format
+      - name: country
+        type: string
+        description: Two-letter country code e.g. US, IN, UK
 
 toolsets:
   weather_toolset:
