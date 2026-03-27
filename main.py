@@ -2,12 +2,20 @@ import os
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.genai.types import Content, Part
 from weather_agent_app import agent
 
 app = FastAPI(title="Weather Intelligence Agent")
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/")
+def root():
+    return FileResponse("static/index.html")
 
 session_service = InMemorySessionService()
 runner = Runner(

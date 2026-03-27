@@ -96,6 +96,11 @@ This guide assumes you are using **Google Cloud Shell**, which comes pre-install
 For the deployed Cloud Run agent to access Gemini and BigQuery, its service account needs the correct permissions. Run these commands (replace `<YOUR_PROJECT_NUMBER>` with your actual numeric project number):
 
 ```bash
+# Grant Artifact Registry write access
+gcloud projects add-iam-policy-binding <YOUR_PROJECT_ID> \
+  --member="serviceAccount:<YOUR_PROJECT_NUMBER>-compute@developer.gserviceaccount.com" \
+  --role="roles/artifactregistry.writer"
+
 # Grant Vertex AI access for Gemini
 gcloud projects add-iam-policy-binding <YOUR_PROJECT_ID> \
   --member="serviceAccount:<YOUR_PROJECT_NUMBER>-compute@developer.gserviceaccount.com" \
@@ -109,6 +114,25 @@ gcloud projects add-iam-policy-binding <YOUR_PROJECT_ID> \
 gcloud projects add-iam-policy-binding <YOUR_PROJECT_ID> \
   --member="serviceAccount:<YOUR_PROJECT_NUMBER>-compute@developer.gserviceaccount.com" \
   --role="roles/bigquery.dataViewer"
+
+# Grant Storage access to Cloud Build service account
+gcloud projects add-iam-policy-binding <YOUR_PROJECT_ID> \
+  --member="serviceAccount:<YOUR_PROJECT_NUMBER>-compute@developer.gserviceaccount.com" \
+  --role="roles/storage.objectViewer"
+
+gcloud projects add-iam-policy-binding <YOUR_PROJECT_ID> \
+  --member="serviceAccount:<YOUR_PROJECT_NUMBER>-compute@developer.gserviceaccount.com" \
+  --role="roles/storage.objectAdmin"
+
+# Also grant Cloud Build service account proper permissions
+gcloud projects add-iam-policy-binding <YOUR_PROJECT_ID> \
+  --member="serviceAccount:<YOUR_PROJECT_NUMBER>@cloudbuild.gserviceaccount.com" \
+  --role="roles/storage.objectAdmin"
+
+# Grant Logging Permissions
+gcloud projects add-iam-policy-binding <YOUR_PROJECT_ID> \
+  --member="serviceAccount:<YOUR_PROJECT_NUMBER>-compute@developer.gserviceaccount.com" \
+  --role="roles/logging.logWriter"
 ```
 
 ### Phase 3: Build & Deploy to Cloud Run
@@ -160,8 +184,10 @@ Expected response:
 }
 ```
 
-**Important Note on MCP Toolbox + Cloud Run**
-Since MCP Toolbox runs as a sidecar process alongside your agent on Cloud Run, you have two options:
+Alternatively, you can also test the Agent in adk development environment, do this in agent cloud shell:
 
-**Local dev:** Run toolbox separately, agent connects to `127.0.0.1:5000`
-**Cloud Run prod:** Deploy toolbox as a separate Cloud Run service and point your agent to its URL via an env variable
+```bash
+adk web --host 0.0.0.0 --port 8080 --allow_origins "*"
+```
+This above command allows for unauthenticated access for testing, **DO NOT LEAK YOUR URL**
+

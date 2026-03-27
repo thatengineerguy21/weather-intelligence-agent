@@ -12,6 +12,7 @@ COPY mcp-toolbox/tools.yaml ./tools.yaml
 # Copy application code
 COPY main.py .
 COPY weather_agent_app/ ./weather_agent_app/
+COPY static/ ./static/
 
 # Startup script will run both toolbox and the agent server
 COPY start.sh .
