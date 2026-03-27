@@ -250,3 +250,11 @@ If you wish to test the agent locally before deploying (Local here can be your o
     ```
 
 4. **Access the UI at http://localhost:8080 (or use Cloud Shell Web Preview).**
+
+### Preview
+
+Web UI:
+![Web UI Preview Image](https://github.com/thatengineerguy21/weather-intelligence-agent/blob/main/preview/ui.png)
+
+CLI:
+![CLI Preview Image](https://github.com/thatengineerguy21/weather-intelligence-agent/blob/main/preview/cli.png)
