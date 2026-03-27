@@ -59,6 +59,30 @@ This guide assumes you are using **Google Cloud Shell**, which comes pre-install
     chmod +x toolbox
     ```
 
+    Sometimes `curl` command stalls, Try(Not Recommended):
+
+    ```bash
+    # Kill the current download first
+    Ctrl+C
+
+    # Try again
+    curl -O https://storage.googleapis.com/genai-toolbox/v$VERSION/linux/amd64/toolbox
+    ```
+
+    OR Else Try:
+
+    ```bash
+    wget https://storage.googleapis.com/genai-toolbox/v$VERSION/linux/amd64/toolbox
+    chmod +x toolbox
+    ```
+  
+    Last Resort (Not Recommended, only do if curl doesn't work at all):
+
+    ```bash
+    gsutil cp gs://genai-toolbox/v$VERSION/linux/amd64/toolbox .
+    chmod +x toolbox
+    ```
+
 8. **Configure and Start MCP Toolbox:**
 
     Replace `YOUR_PROJECT_ID` in `tools.yaml` with your actual GCP project ID.
